@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Απουσίες Νηπιαγωγείου</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f3f6fb;
+        color: #222;
+    }
+
+    .container {
+        max-width: 650px;
+        margin: auto;
+        padding: 15px;
+    }
+
+    .header {
+        background: white;
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        margin: 0 0 8px;
+        font-size: 26px;
+        color: #2457a6;
+    }
+
+    .subtitle {
+        color: #666;
+        margin-bottom: 18px;
+    }
+
+    .date-label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    input[type="date"] {
+        width: 100%;
+        padding: 12px;
+        font-size: 18px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+    }
+
+    .counter {
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 10px;
+        background: #eef4ff;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .children {
+        background: white;
+        border-radius: 18px;
+        padding: 10px 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 15px;
+    }
+
+    .child {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 4px;
+        border-bottom: 1px solid #eeeeee;
+        font-size: 17px;
+        cursor: pointer;
+    }
+
+    .child:last-child {
+        border-bottom: none;
+    }
+
+    .child input {
+        width: 25px;
+        height: 25px;
+        flex-shrink: 0;
+    }
+
+    .buttons {
+        background: white;
+        border-radius: 18px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    button {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 10px;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .blue {
+        background: #2f6fed;
+        color: white;
+    }
+
+    .light {
+        background: #e7efff;
+        color: #2457a6;
+    }
+
+    .green {
+        background: #20a464;
+        color: white;
+    }
+
+    .message {
+        display: none;
+        margin-top: 15px;
+        background: #f7f7f7;
+        border-radius: 12px;
+        padding: 15px;
+        white-space: pre-wrap;
+        line-height: 1.5;
+        border: 1px solid #ddd;
+    }
+
+    .info {
+        text-align: center;
+        color: #777;
+        font-size: 13px;
+        margin-top: 12px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <h1>📋 Απουσίες Νηπιαγωγείου</h1>
+
+        <div class="subtitle">
+            Επίλεξε τα παιδιά που απουσιάζουν.
+        </div>
+
+        <label class="date-label">
+            Ημερομηνία
+        </label>
+
+        <input type="date" id="date">
+
+        <div class="counter" id="counter">
+            Παρόντες: 25 &nbsp; | &nbsp; Απόντες: 0
+        </div>
+
+    </div>
+
+
+    <div class="children" id="children">
+    </div>
+
+
+    <div class="buttons">
+
+        <button class="light" onclick="clearAll()">
+            ✓ Όλα παρόντα
+        </button>
+
+        <button class="blue" onclick="createMessage()">
+            📝 Δημιουργία μηνύματος
+        </button>
+
+        <button class="green" onclick="shareMessage()">
+            📤 Κοινοποίηση στο Viber
+        </button>
+
+        <div class="message" id="message"></div>
+
+        <div class="info">
+            Η κοινοποίηση ανοίγει το παράθυρο κοινοποίησης του κινητού.
+            Εκεί επιλέγεις Viber.
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   ΟΝΟΜΑΤΑ ΠΑΙΔΙΩΝ
+   ========================= */
+
+const names = [
+
+    "ΑΜΠΟΥΑΣΒΙΛΙ ΑΝΔΡΙΑΝΑ",
+
+    "ΒΑΣΤΑΖΟΣ ΛΑΥΡΕΝΤΗΣ",
+
+    "ΓΡΑΜΜΑΤΙΚΟΠΟΥΛΟΣ ΕΛΕΥΘΕΡΙΟΣ",
+
+    "ΔΑΛΛΑΣ ΓΕΩΡΓΙΟΣ",
+
+    "ΖΑΠΟΥΝΙΔΟΥ ΕΥΦΡΟΣΥΝΗ",
+
+    "ΖΑΠΟΥΝΙΔΟΥ ΚΥΡΙΑΚΗ-ΕΛΕΥΘΕΡΙΑ",
+
+    "ΖΕΛΚΑΣ ΔΗΜΗΤΡΙΟΣ",
+
+    "ΖΕΛΚΑΣ ΝΙΚΟΛΑΟΣ",
+
+    "ΗΛΙΟΠΟΥΛΟΥ ΜΙΧΑΕΛΑ",
+
+    "ΘΕΟΔΩΡΟΥ ΙΣΑΒΕΛΛΑ",
+
+    "ΚΑΜΠΑΣ ΝΙΚΟΛΑΟΣ",
+
+    "ΚΟΥΒΑΤΛΗ ΗΛΙΑΝΑ",
+
+    "ΚΟΥΡΙΝΙΩΤΗΣ ΓΡΗΓΟΡΙΟΣ",
+
+    "ΚΟΥΡΤΗΣ ΓΑΒΡΙΗΛ",
+
+    "ΜΑΚΡΙΔΟΥ ΕΡΑΣΜΙΑ",
+
+    "ΜΑΡΡΑ ΜΑΡΙΑΝΕΛΛΑ",
+
+    "ΝΤΙΠΑΚ ΜΠΑΡΑΤ",
+
+    "ΝΤΙΠΑΚ ΝΤΙΜΠΟΥ",
+
+    "ΠΑΠΑΓΕΩΡΓΙΟΥ ΕΛΕΝΗ",
+
+    "ΠΑΠΑΔΗΜΗΤΡΙΟΥ ΔΙΟΝΥΣΙΟΣ",
+
+    "ΠΑΠΑΔΗΜΗΤΡΙΟΥ ΜΑΡΙΑ-ΑΝΑΣΤΑΣΙΑ",
+
+    "ΠΑΠΑΔΟΠΟΥΛΟΥ ΚΑΛΛΙΑ",
+
+    "ΠΑΠΑΝΙΚΟΛΑΟΥ ΠΕΛΑΓΙΑ",
+
+    "ΣΕΙΝΤΙΔΗΣ ΒΙΚΤΩΡΑΣ-ΚΛΕΑΝΘΗΣ",
+
+    "ΧΩΛΙΔΗΣ ΠΑΝΤΕΛΗΣ"
+
+];
+
+
+/* =========================
+   ΗΜΕΡΟΜΗΝΙΑ
+   ========================= */
+
+const dateInput = document.getElementById("date");
+
+const today = new Date();
+
+const year = today.getFullYear();
+
+const month = String(today.getMonth() + 1).padStart(2, "0");
+
+const day = String(today.getDate()).padStart(2, "0");
+
+dateInput.value = year + "-" + month + "-" + day;
+
+
+/* =========================
+   ΔΗΜΙΟΥΡΓΙΑ ΛΙΣΤΑΣ
+   ========================= */
+
+const childrenContainer =
+    document.getElementById("children");
+
+names.forEach(function(name, index) {
+
+    const label = document.createElement("label");
+
+    label.className = "child";
+
+    const checkbox = document.createElement("input");
+
+    checkbox.type = "checkbox";
+
+    checkbox.id = "child" + index;
+
+    checkbox.addEventListener(
+        "change",
+        updateCounter
+    );
+
+    const text = document.createElement("span");
+
+    text.textContent = name;
+
+    label.appendChild(checkbox);
+
+    label.appendChild(text);
+
+    childrenContainer.appendChild(label);
+
+});
+
+
+/* =========================
+   ΜΕΤΡΗΣΗ ΑΠΟΥΣΙΩΝ
+   ========================= */
+
+function getAbsentNames() {
+
+    const absent = [];
+
+    names.forEach(function(name, index) {
+
+        const checkbox =
+            document.getElementById("child" + index);
+
+        if (checkbox.checked) {
+
+            absent.push(name);
+
+        }
+
+    });
+
+    return absent;
+}
+
+
+function updateCounter() {
+
+    const absent = getAbsentNames();
+
+    const absentCount = absent.length;
+
+    const presentCount =
+        names.length - absentCount;
+
+    document.getElementById("counter").innerHTML =
+        "Παρόντες: " +
+        presentCount +
+        " &nbsp; | &nbsp; Απόντες: " +
+        absentCount;
+
+}
+
+
+/* =========================
+   ΟΛΑ ΠΑΡΟΝΤΑ
+   ========================= */
+
+function clearAll() {
+
+    names.forEach(function(name, index) {
+
+        document.getElementById(
+            "child" + index
+        ).checked = false;
+
+    });
+
+    updateCounter();
+
+    document.getElementById(
+        "message"
+    ).style.display = "none";
+
+}
+
+
+/* =========================
+   ΗΜΕΡΟΜΗΝΙΑ ΣΕ ΜΟΡΦΗ
+   16/09/2026
+   ========================= */
+
+function formattedDate() {
+
+    const parts =
+        dateInput.value.split("-");
+
+    return (
+        parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0]
+    );
+
+}
+
+
+/* =========================
+   ΔΗΜΙΟΥΡΓΙΑ ΜΗΝΥΜΑΤΟΣ
+   ========================= */
+
+function getMessageText() {
+
+    const absent = getAbsentNames();
+
+    const presentCount =
+        names.length - absent.length;
+
+    let message =
+        "ΑΠΟΥΣΙΕΣ ΝΗΠΙΑΓΩΓΕΙΟΥ\n\n";
+
+    message +=
+        "Ημερομηνία: " +
+        formattedDate() +
+        "\n\n";
+
+
+    if (absent.length === 0) {
+
+        message +=
+            "Δεν υπάρχουν απουσίες.\n";
+
+    } else {
+
+        message +=
+            "Απόντες:\n";
+
+        absent.forEach(function(name) {
+
+            message +=
+                "• " +
+                name +
+                "\n";
+
+        });
+
+    }
+
+
+    message +=
+        "\nΣύνολο απόντων: " +
+        absent.length;
+
+    message +=
+        "\nΣύνολο παρόντων: " +
+        presentCount;
+
+
+    return message;
+
+}
+
+
+/* =========================
+   ΕΜΦΑΝΙΣΗ ΜΗΝΥΜΑΤΟΣ
+   ========================= */
+
+function createMessage() {
+
+    const message =
+        getMessageText();
+
+    const messageBox =
+        document.getElementById("message");
+
+    messageBox.textContent =
+        message;
+
+    messageBox.style.display =
+        "block";
+
+}
+
+
+/* =========================
+   ΚΟΙΝΟΠΟΙΗΣΗ
+   ========================= */
+
+async function shareMessage() {
+
+    const message =
+        getMessageText();
+
+    const messageBox =
+        document.getElementById("message");
+
+    messageBox.textContent =
+        message;
+
+    messageBox.style.display =
+        "block";
+
+
+    /*
+       Αν το κινητό υποστηρίζει
+       κοινοποίηση, ανοίγει το
+       παράθυρο του Android.
+    */
+
+    if (navigator.share) {
+
+        try {
+
+            await navigator.share({
+
+                title:
+                    "Απουσίες Νηπιαγωγείου",
+
+                text:
+                    message
+
+            });
+
+            return;
+
+        } catch (error) {
+
+            /*
+               Αν πατήσουμε ακύρωση,
+               δεν κάνουμε τίποτα.
+            */
+
+            if (
+                error.name ===
+                "AbortError"
+            ) {
+
+                return;
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       Εναλλακτικά αντιγράφει
+       το μήνυμα.
+    */
+
+    try {
+
+        await navigator.clipboard.writeText(
+            message
+        );
+
+        alert(
+            "Το μήνυμα αντιγράφηκε. " +
+            "Άνοιξε το Viber και κάνε επικόλληση."
+        );
+
+    } catch (error) {
+
+        alert(
+            "Αντέγραψε το μήνυμα " +
+            "από το πλαίσιο και στείλ' το στο Viber."
+        );
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
